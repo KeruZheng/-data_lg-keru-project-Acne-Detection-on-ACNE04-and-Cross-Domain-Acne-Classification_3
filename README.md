@@ -1,7 +1,7 @@
 # 🚀 YOLOv5 Acne Detection (Training + Evaluation + Result Visualization)
 ## 📌 Dataset
 We use the ACNE04 dataset, a publicly available facial acne detection dataset containing 1450 facial images with bounding box annotations for acne lesions.
-you can directly download the yolov5 data format in - 🔗Dataset link: https://universe.roboflow.com/acne-vulgaris-detection/acne04-detection/ 
+you can directly download the yolov5 data format in - 🔗Dataset link: https://universe.roboflow.com/acne-vulgaris-detection/acne04-detection/    
 
 📂 Format: YOLOv5-ready (images + label .txt files)
   Once downloaded, organize your data as follows:
@@ -46,6 +46,26 @@ Each labels/ folder contains .txt annotation files in YOLO format:
           url: https://universe.roboflow.com/acne-vulgaris-detection/acne04-detection/dataset/5
     
        ```
+  We also add:
+  
+       ```  
+          # 原data.yaml基础上添加
+        augmentations:
+          hsv_h: 0.015  # 色调偏移
+          hsv_s: 0.7  # 饱和度偏移
+          hsv_v: 0.4  # 明度偏移
+          degrees: 10  # 旋转角度
+          translate: 0.1  # 平移比例
+ 
+       ```
+   
+  Address insufficient data: Synthesize new samples to expand the diversity of training data and alleviate the overfitting problem in small datasets.
+  Enhance generalization ability: Enable the model to learn more robust features (such as color - invariant features, multi - angle features), so that it can perform better on unseen images during testing.
+  Cope with real - world scenario challenges:
+  Lighting changes (HSV augmentation): Medical images may be affected by different devices or environmental lighting.
+  Angle diversity (rotation, translation): Acne lesions may appear in different positions and angles on the skin.
+  Small target detection (Mosaic): Tiny acne lesions (such as whiteheads) require a stronger feature extraction ability.   
+    
    Model selection:
    In our experiments, we selected two YOLOv5 variants for training and evaluation:
   ```
@@ -54,11 +74,11 @@ Each labels/ folder contains .txt annotation files in YOLO format:
   YOLOv5m (medium): a balanced model with better accuracy at the cost of slightly more computation.
   ```
   These two models were chosen to explore the trade-off between speed and performance for acne lesion detection.
-  All training and evaluation procedures were performed using the same dataset and hyperparameters, with only the model backbone (yolov5s.yaml and yolov5m.yaml) changed accordingly.
+  All training and evaluation procedures were performed using the same dataset and hyperparameters, with only the model backbone (yolov5s.yaml and yolov5m.yaml) changed accordingly.   
   
-  To switch between models, simply modify the --cfg and --weights parameters during training.
+  To switch between models, simply modify the --cfg and --weights parameters during training.  
 
-  Remind!!!!!!! We need to adapt the yolov5s.yaml/yolov5m.yaml to adapt your training set! you should pay attention to the ```nc``` ```depth_multiple``````width_multiple``` and ```anchor```(our project should carefully adapt the anchor since the detect goal is too small comparing to the initial detecting object(car, cat, dog...))
+  Remind!!!!!!! We need to adapt the yolov5s.yaml/yolov5m.yaml to adapt your training set! you should pay attention to the ```nc``` ```depth_multiple``````width_multiple``` and ```anchor```(our project should carefully adapt the anchor since the detect goal is too small comparing to the initial detecting object(car, cat, dog...))  
 
   The backbone yaml include:
       ```
@@ -174,10 +194,13 @@ These precision - confidence curves assess an acne lesion detection model. Key p
 - Category Variance: whitehead/blackhead performs best (stable, high precision at low confidence). papules and nodules/cysts show poor precision (fluctuations, low overall), likely due to imbalance/feature overlap.
 - Overall Model: The “all classes” curve hits 1.0 precision at 0.645 confidence but masks per - class issues (e.g., misclassifications in papules/nodules/cysts).
 - Fixes: Address imbalance (oversample/undersample, add class weights), reduce feature confusion (better engineering/backbone), and optimize thresholds (align with clinical needs, use metrics like F1).
-
+   
 Potential Problems and Optimization Directions
 - Class Imbalance: The significant difference in precision among different categories suggests that the number of samples of each category in the dataset may be unbalanced (for example, there are more samples of whitehead and blackhead and fewer samples of nodules and cysts). Methods such as oversampling minority classes (e.g., using the SMOTE method to expand samples of minority categories), undersampling majority classes, or introducing class weights can be adopted to balance the model's learning of different categories.
+- 
 - Feature Confusion: The large fluctuations in the precision of categories like papules may be due to feature confusion with other categories. One can try enhancing feature engineering (such as extracting more discriminative texture and shape features) or replacing the model backbone with a more powerful one (e.g., using Swin Transformer instead of the basic CNN) to improve feature extraction and discrimination capabilities.
+- 
 - Threshold Optimization: Although the combined curve reaches 1.0 at a confidence level of 0.645, in actual deployment, it is necessary to combine business requirements (for example, in a medical scenario where the tolerance for missed diagnoses is low, the confidence threshold can be appropriately reduced to “sacrifice part of the precision” for recall rate). Through indicators such as confusion matrix and F1 - score, the optimal combination of confidence thresholds for different categories/overall can be found.
+
 
 In general, the model has obvious differences in the recognition ability of different acne lesion categories. There are problems such as class imbalance and feature confusion that affect the stability of precision. It is necessary to optimize the data, model, or threshold strategy in a targeted manner. If the scenario is medical - assisted diagnosis, the risk of misjudgment needs to be evaluated more carefully, and the model should be adjusted in combination with clinical needs!
