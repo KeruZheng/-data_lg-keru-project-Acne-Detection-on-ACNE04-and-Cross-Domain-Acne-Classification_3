@@ -142,27 +142,42 @@ Each labels/ folder contains .txt annotation files in YOLO format:
   --epochs 200 \
   --batch-size 16  # 根据你的GPU显存调整
   ```
-🧪 Step 2: Evaluation
+🧪 Step 2: Evaluatione & Result Visualization
 After training, evaluate the model using:
-
-bash
-Copy
-Edit
-python val.py --weights runs/train/acne_yolov5/weights/best.pt --data acne.yaml --img 640
+```
+  python val.py --weights runs/train/acne_yolov5/weights/best.pt --data acne.yaml --img 640
+```
 This will report metrics like mAP@0.5, Precision, Recall, and F1 score.
+result of yolov5s:
+![image.png](attachment:139f76ff-1ca1-4589-80b9-3ce3a792696d:image.png)
+![image.png](attachment:6c6cc51b-fb54-4e03-82eb-4aaffc685f9e:image.png) 
 
-👀 Step 3: Inference & Result Visualization
-To run inference on test images and visualize results:
+    
+result of yolov5m:
+![image.png](attachment:0f5ca1ea-81df-43a1-b89d-dba8705642b8:image.png)
+![image.png](attachment:fd9d606e-91ef-43e1-8498-94fcce1b45db:image.png)
 
-bash
-Copy
-Edit
-python detect.py --weights runs/train/acne_yolov5/weights/best.pt --source /path/to/test/images --conf 0.25 --save-txt --save-conf
-Predictions will be saved in runs/detect/exp/ by default.
+label:
+![image](https://github.com/user-attachments/assets/e1b45f6e-98da-4e73-bd25-0e5542f15c46)
+prediction:
+![image](https://github.com/user-attachments/assets/2fbcdee7-c6c5-4ff7-9a95-2bf1f457169b)
 
-Set --source to a directory, image file, or video file.
+validation and Predictions will be saved in runs/detect/exp/ by default.
 
-Use --save-txt to export YOLO-format predictions, and --save-conf to include confidence scores.
 
-📝 Notes
-You can use train.py with different YOLOv5 models: yolov5n, yolov5s, yolov5m, yolov5l, yolov5x depending on your hardware.
+Analyze：
+![image](https://github.com/user-attachments/assets/0d1de813-9841-4e1b-8008-0437c79287af)
+![image](https://github.com/user-attachments/assets/8ffdf28c-6634-4e90-a6d6-448b34e423bc)
+
+These precision - confidence curves assess an acne lesion detection model. Key points:
+
+- Category Variance: whitehead/blackhead performs best (stable, high precision at low confidence). papules and nodules/cysts show poor precision (fluctuations, low overall), likely due to imbalance/feature overlap.
+- Overall Model: The “all classes” curve hits 1.0 precision at 0.645 confidence but masks per - class issues (e.g., misclassifications in papules/nodules/cysts).
+- Fixes: Address imbalance (oversample/undersample, add class weights), reduce feature confusion (better engineering/backbone), and optimize thresholds (align with clinical needs, use metrics like F1).
+
+Potential Problems and Optimization Directions
+- Class Imbalance: The significant difference in precision among different categories suggests that the number of samples of each category in the dataset may be unbalanced (for example, there are more samples of whitehead and blackhead and fewer samples of nodules and cysts). Methods such as oversampling minority classes (e.g., using the SMOTE method to expand samples of minority categories), undersampling majority classes, or introducing class weights can be adopted to balance the model's learning of different categories.
+- Feature Confusion: The large fluctuations in the precision of categories like papules may be due to feature confusion with other categories. One can try enhancing feature engineering (such as extracting more discriminative texture and shape features) or replacing the model backbone with a more powerful one (e.g., using Swin Transformer instead of the basic CNN) to improve feature extraction and discrimination capabilities.
+- Threshold Optimization: Although the combined curve reaches 1.0 at a confidence level of 0.645, in actual deployment, it is necessary to combine business requirements (for example, in a medical scenario where the tolerance for missed diagnoses is low, the confidence threshold can be appropriately reduced to “sacrifice part of the precision” for recall rate). Through indicators such as confusion matrix and F1 - score, the optimal combination of confidence thresholds for different categories/overall can be found.
+
+In general, the model has obvious differences in the recognition ability of different acne lesion categories. There are problems such as class imbalance and feature confusion that affect the stability of precision. It is necessary to optimize the data, model, or threshold strategy in a targeted manner. If the scenario is medical - assisted diagnosis, the risk of misjudgment needs to be evaluated more carefully, and the model should be adjusted in combination with clinical needs!
