@@ -197,9 +197,9 @@ These precision - confidence curves assess an acne lesion detection model. Key p
    
 Potential Problems and Optimization Directions
 - Class Imbalance: The significant difference in precision among different categories suggests that the number of samples of each category in the dataset may be unbalanced (for example, there are more samples of whitehead and blackhead and fewer samples of nodules and cysts). Methods such as oversampling minority classes (e.g., using the SMOTE method to expand samples of minority categories), undersampling majority classes, or introducing class weights can be adopted to balance the model's learning of different categories.
-- 
+  
 - Feature Confusion: The large fluctuations in the precision of categories like papules may be due to feature confusion with other categories. One can try enhancing feature engineering (such as extracting more discriminative texture and shape features) or replacing the model backbone with a more powerful one (e.g., using Swin Transformer instead of the basic CNN) to improve feature extraction and discrimination capabilities.
-- 
+  
 - Threshold Optimization: Although the combined curve reaches 1.0 at a confidence level of 0.645, in actual deployment, it is necessary to combine business requirements (for example, in a medical scenario where the tolerance for missed diagnoses is low, the confidence threshold can be appropriately reduced to “sacrifice part of the precision” for recall rate). Through indicators such as confusion matrix and F1 - score, the optimal combination of confidence thresholds for different categories/overall can be found.
 
 
